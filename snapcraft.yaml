@@ -1,0 +1,50 @@
+name: tmate
+base: core18
+confinement: classic
+
+summary: The best tmate snap you can find.
+description: |
+  tmux is a "terminal multiplexer", it enables a number of terminals (or windows)
+  to be accessed and controlled from a single terminal. tmux is intended to be a
+  simple, modern, BSD-licensed alternative to programs such as GNU screen.
+
+  tmate, built for you by the Travis CI team.
+adopt-info: tmate
+
+
+apps:
+  tmate:
+    command: bin/tmate
+    adapter: full
+    environment:
+      LC_ALL: C.UTF-8
+
+parts:
+  tmate:
+    source: https://github.com/tmate-io/tmate.git
+    plugin: autotools
+    build-packages:
+    - libevent-dev
+    - libmsgpack-dev
+    - libncurses-dev
+    - libtool
+    - pkg-config
+    - zlib1g-dev
+    stage-packages:
+    - libevent-2.1-6
+    - libmsgpackc2
+    override-pull: |
+      snapcraftctl pull
+      version="$(git describe --always | sed -e 's/-/+git/;y/-/./')"
+      # If building from a tag we are on a stable grade, if not devel
+      [ -n "$(echo $version | grep "+git")" ] && grade=devel || grade=stable
+      snapcraftctl set-version "$version"
+      snapcraftctl set-grade "$grade"
+    after:
+    - libssh
+  libssh:
+    source: https://git.libssh.org/projects/libssh.git
+    source-tag: libssh-0.8.7
+    plugin: cmake
+    build-packages:
+    - libssl-dev
